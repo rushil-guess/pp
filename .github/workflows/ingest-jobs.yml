@@ -1,0 +1,19 @@
+name: Scheduled Job Ingest
+
+on:
+  schedule:
+    - cron: '0 * * * *' # every hour at minute 0
+  workflow_dispatch: {}
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger job ingest endpoint
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          INGEST_SECRET: ${{ secrets.INGEST_SECRET }}
+        run: |
+          if [ -z "$SITE_URL" ]; then echo "SITE_URL secret not set"; exit 1; fi
+          echo "Calling $SITE_URL/api/jobs/import"
+          curl -s -X POST "$SITE_URL/api/jobs/import" -H "Authorization: Bearer $INGEST_SECRET" -H "Content-Type: application/json" -d '{}' | jq -c '.' || true
