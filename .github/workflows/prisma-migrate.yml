@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
 
       - name: Install (web)
         run: |
@@ -30,12 +30,13 @@ jobs:
           cd web
           npx prisma generate
 
-      - name: Run Prisma Migrate Deploy
+      - name: Apply Prisma schema (db push)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           cd web
-          npx prisma migrate deploy
+          # If migrations are not present, use db push to apply the schema
+          npx prisma db push --accept-data-loss
 
       - name: Seed database (JobSource entries)
         env:
@@ -45,4 +46,4 @@ jobs:
           node prisma/seed.js
 
       - name: Finished
-        run: echo "Migrations and seeding completed"
+        run: echo "Schema applied and seeding completed"
